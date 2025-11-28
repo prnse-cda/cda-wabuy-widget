@@ -25,6 +25,13 @@ body{margin:0;font-family:Inter,Arial,Helvetica,sans-serif;background:#fff;color
 .col-thumb.coord{background-image:url('images/coord-sample.jpg');background-size:cover;background-position:center}
 .section h2{font-size:26px;margin-bottom:18px}
 
+/* header logo styling */
+.site-logo {
+  height: 64px;
+  display: inline-block;
+  object-fit: contain;
+}
+
 /* product grid */
 .controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
 .controls input, .controls select{padding:8px;border-radius:6px;border:1px solid #ddd}
