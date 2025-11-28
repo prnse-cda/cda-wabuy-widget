@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Product — Cathy’s Dreamy Attire</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <div class="brand"><a href="index.html">Cathy's Dreamy Attire</a></div>
+      <nav class="main-nav">
+        <a href="products.html">Shop</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="productDetail" class="product-detail">
+      <!-- script.js will fill this -->
+      <div class="loading">Loading product…</div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap"><p>© <span id="year3"></span> Cathy’s Dreamy Attire®</p></div>
+  </footer>
+
+  <script>const CSV_PUB_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9RM9PuEfM9qPbZXALjzYFdGEoBiltayHlPSQlY9yEurdsRIQK1fgTfE-Wofkd821fdqADQ6O08Z4x/pub?gid=0&single=true&output=csv";</script>
+  <script src="script.js"></script>
+  <script>document.getElementById('year3').textContent = new Date().getFullYear();</script>
+</body>
+</html>
