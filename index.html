@@ -1,318 +1,124 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Cathy's Dreamy Attire — Buy Now</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <style>
-    :root{
-      --pink:#FADADD;
-      --brown:#5C4033;
-      --gold:#D4AF37;
-      --green:#25D366;
-      --maxw:980px;
-    }
-    body{
-      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background: #fff;
-      color: var(--brown);
-      margin:0;
-      padding:20px;
-      display:flex;
-      justify-content:center;
-    }
-    .wrap{
-      max-width:var(--maxw);
-      width:100%;
-      border:1px solid #eee;
-      border-radius:10px;
-      padding:18px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-      background: #fff;
-    }
-
-    h1 { margin: 0 0 12px 0; font-size:20px; color:var(--brown);}
-    .grid{ display:grid; grid-template-columns: 1fr 360px; gap:18px; align-items:start; }
-    @media(max-width:900px){ .grid{ grid-template-columns:1fr; } }
-
-    /* Gallery */
-    .gallery{ border-radius:8px; border:1px solid #eee; padding:10px; background:#fafafa; }
-    .main-img{ width:100%; height:360px; object-fit:cover; border-radius:6px; display:block; background:#eee; }
-    .thumbs{ margin-top:8px; display:flex; gap:8px; overflow:auto; }
-    .thumbs img{ width:64px; height:64px; object-fit:cover; border-radius:6px; cursor:pointer; border:2px solid transparent; }
-    .thumbs img.active{ border-color:var(--gold); }
-
-    /* Right column */
-    .card{ padding:12px; border-radius:8px; border:1px solid #eee; background:linear-gradient(180deg,#fff,#fff); }
-    label{ display:block; font-weight:600; margin:12px 0 6px 0; }
-    select,input{ width:100%; padding:10px; border-radius:6px; border:1px solid #ddd; font-size:15px; }
-    .price{ font-size:20px; font-weight:700; color:var(--brown); margin-top:6px; }
-    .stock { font-weight:600; margin-top:6px; }
-    .stock.in { color:green; }
-    .stock.low { color:orange; }
-    .stock.out { color:red; }
-
-    .btn{
-      display:inline-block;
-      text-decoration:none;
-      text-align:center;
-      border:none;
-      width:100%;
-      padding:12px;
-      margin-top:14px;
-      border-radius:8px;
-      font-weight:700;
-      font-size:15px;
-      cursor:pointer;
-    }
-
-    .btn-buy{ background:var(--pink); color:var(--brown); border:2px solid var(--gold); }
-    .btn-ws{ background:var(--green); color:#fff; }
-
-    .meta{ font-size:13px; color:#666; margin-top:8px; }
-
-    /* small helper */
-    .center { text-align:center; }
-  </style>
-</head>
-<body>
-  <div class="wrap" id="app">
-    <h1>Cathy's Dreamy Attire — Buy Now</h1>
-
-    <div class="grid">
-      <!-- LEFT: Gallery & product selector -->
-      <div>
-        <div style="display:flex; gap:8px; align-items:center;">
-          <div style="flex:1">
-            <label for="productSelect">Product</label>
-            <select id="productSelect"></select>
-          </div>
-          <div style="width:140px;">
-            <label>&nbsp;</label>
-            <div id="priceBox" style="padding:8px;border-radius:6px;text-align:center;border:1px solid #eee;">
-              <div class="price" id="priceText">₹—</div>
-              <div class="meta" id="codeText">Code: —</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="gallery" style="margin-top:12px;">
-          <img id="mainImage" class="main-img" src="" alt="Product image" />
-          <div class="thumbs" id="thumbs"></div>
-        </div>
-
-        <div style="margin-top:10px;">
-          <div class="meta" id="stockText">Stock: —</div>
-          <div class="meta" id="nameText">—</div>
-        </div>
-      </div>
-
-      <!-- RIGHT: Order card -->
-      <div>
-        <div class="card">
-          <label for="sizeSelect">Size</label>
-          <select id="sizeSelect"></select>
-
-          <label for="qtyInput">Quantity</label>
-          <input id="qtyInput" type="number" value="1" min="1" />
-
-          <label for="notesInput">Notes (optional)</label>
-          <input id="notesInput" type="text" placeholder="eg. gift wrap / urgent delivery" />
-
-          <button id="btnWhatsapp" class="btn btn-ws">Chat on WhatsApp</button>
-          <button id="btnBuy" class="btn btn-buy">Buy Now — Open WhatsApp with order</button>
-
-          <div class="meta center" style="margin-top:10px;">By clicking Buy you will be redirected to WhatsApp.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-<script>
-/*
-  GitHub Pages-ready widget:
-  - Reads product data from your Google Sheet (gviz JSON)
-  - Expects columns (case-insensitive): Code, Name, ImageURLs, Sizes, Price, Stock
-  - ImageURLs should be comma-separated direct URLs
-  - Sizes should be comma-separated (S,M,L,...)
-  - Make sure your Google Sheet is "Anyone with the link" Viewer & Published
-*/
-
-const SHEET_ID = "152HqezLuGGNjnGOGHE7AKMUKTjrcB-nAVRYmY0C5FIg";
-const SHEET_JSON_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
-const WA_NUMBER = "917907555924"; // no plus sign for wa.me
-
-let products = []; // parsed products
-
-// Utility: parse gviz JSON response
-function parseGviz(text){
-  // gviz returns something like: "/*O_o*/\ngoogle.visualization.Query.setResponse(...)"
-  const jsonText = text.trim().replace(/^[^\(]*\(/, '').replace(/\);?$/, '');
-  return JSON.parse(jsonText);
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #fafafa;
+    color: #333;
 }
 
-function loadSheet(){
-  fetch(SHEET_JSON_URL)
-    .then(r => r.text())
-    .then(text => {
-      const payload = parseGviz(text);
-      const cols = payload.table.cols.map(c => (c.label || c.id || "").toString().trim());
-      const rows = payload.table.rows || [];
-      // find column indexes
-      const mapIndex = {};
-      cols.forEach((c, i) => mapIndex[c.toLowerCase()] = i);
+/* Header */
 
-      rows.forEach(row => {
-        const c = (idx) => (row.c[idx] && row.c[idx].v) ? row.c[idx].v.toString().trim() : "";
-        // fetch by header names
-        const code = c(mapIndex["code"] ?? mapIndex["product code"] ?? 0);
-        const name = c(mapIndex["name"] ?? 1);
-        const imageURLs = c(mapIndex["imageurls"] ?? mapIndex["image url"] ?? mapIndex["images"] ?? 2);
-        const sizes = c(mapIndex["sizes"] ?? 3);
-        const price = c(mapIndex["price"] ?? 4);
-        const stock = c(mapIndex["stock"] ?? 5);
-        if(code){
-          products.push({
-            code,
-            name,
-            imageURLs: (imageURLs || "").split(",").map(s => s.trim()).filter(Boolean),
-            sizes: (sizes || "").split(",").map(s=>s.trim()).filter(Boolean),
-            price: price ? price.toString().trim() : "",
-            stock: stock ? stock.toString().trim() : ""
-          });
-        }
-      });
-
-      if(products.length === 0){
-        document.getElementById('productSelect').innerHTML = '<option>NO PRODUCTS FOUND</option>';
-        console.warn("No products parsed from sheet. Check headers and sheet visibility.");
-      }else{
-        populateProductDropdown();
-        selectProduct(0);
-      }
-    })
-    .catch(err => {
-      console.error("Error loading sheet:", err);
-      document.getElementById('productSelect').innerHTML = '<option>Error loading sheet</option>';
-    });
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 15px 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
-function populateProductDropdown(){
-  const sel = document.getElementById('productSelect');
-  sel.innerHTML = '';
-  products.forEach((p, i) => {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = `${p.name} — ${p.code}`;
-    sel.appendChild(opt);
-  });
-
-  sel.addEventListener('change', (e) => {
-    const idx = parseInt(e.target.value,10);
-    selectProduct(idx);
-  });
+header .logo {
+    font-size: 22px;
+    font-weight: bold;
 }
 
-function selectProduct(index){
-  const p = products[index];
-  if(!p) return;
-  // images
-  const main = document.getElementById('mainImage');
-  const thumbs = document.getElementById('thumbs');
-  main.src = p.imageURLs[0] || "";
-  main.alt = p.name || p.code;
-  thumbs.innerHTML = '';
-  p.imageURLs.forEach((url, idx) => {
-    const img = document.createElement('img');
-    img.src = url;
-    if(idx===0) img.classList.add('active');
-    img.addEventListener('click', ()=> {
-      document.querySelectorAll('.thumbs img').forEach(t=>t.classList.remove('active'));
-      img.classList.add('active');
-      main.src = url;
-    });
-    thumbs.appendChild(img);
-  });
-
-  // sizes
-  const sizeSel = document.getElementById('sizeSelect');
-  sizeSel.innerHTML = '';
-  if(p.sizes.length === 0){
-    const opt = document.createElement('option'); opt.value=''; opt.textContent='—'; sizeSel.appendChild(opt);
-  } else {
-    p.sizes.forEach(s => { const opt=document.createElement('option'); opt.value=s; opt.textContent=s; sizeSel.appendChild(opt); });
-  }
-
-  // price & code & name
-  document.getElementById('priceText').textContent = p.price ? `₹${p.price}` : '—';
-  document.getElementById('codeText').textContent = `Code: ${p.code}`;
-  document.getElementById('nameText').textContent = p.name;
-
-  // stock
-  const stockEl = document.getElementById('stockText');
-  const st = (p.stock||'').toLowerCase();
-  if(st.includes('in')){
-    stockEl.textContent = `Stock: ${p.stock}`; stockEl.className = 'meta stock in';
-  } else if(st.includes('low')){
-    stockEl.textContent = `Stock: ${p.stock}`; stockEl.className = 'meta stock low';
-  } else if(st.includes('out')){
-    stockEl.textContent = `Stock: ${p.stock}`; stockEl.className = 'meta stock out';
-  } else {
-    stockEl.textContent = `Stock: ${p.stock}`; stockEl.className = 'meta stock';
-  }
-
-  // set qty min to 1
-  document.getElementById('qtyInput').value = 1;
-  document.getElementById('qtyInput').min = 1;
+header nav a {
+    margin-right: 20px;
+    text-decoration: none;
+    color: #333;
+    font-weight: 600;
 }
 
-// Build WhatsApp message
-function buildMessage(p){
-  const size = document.getElementById('sizeSelect').value || '—';
-  const qty = document.getElementById('qtyInput').value || '1';
-  const notes = document.getElementById('notesInput').value || '';
-  const price = p.price ? `₹${p.price}` : '—';
-  // include first image as reference if exists
-  const imgref = p.imageURLs[0] ? `Image: ${p.imageURLs[0]}` : '';
-  let msg = `Hello Cathy%27s Dreamy Attire,%0A%0AI would like to place an order.%0A%0A`;
-  msg += `Product: ${encodeURIComponent(p.name)}%0A`;
-  msg += `Product Code: ${encodeURIComponent(p.code)}%0A`;
-  msg += `Size: ${encodeURIComponent(size)}%0A`;
-  msg += `Quantity: ${encodeURIComponent(qty)}%0A`;
-  msg += `Price: ${encodeURIComponent(price)}%0A`;
-  if(notes) msg += `Notes: ${encodeURIComponent(notes)}%0A`;
-  if(imgref) msg += `%0A${encodeURIComponent(imgref)}%0A`;
-  msg += `%0AThank you!`;
-  return msg;
+header nav a:hover {
+    color: #e91e63;
 }
 
-function openWhatsApp(p){
-  const message = buildMessage(p);
-  const waURL = `https://wa.me/${WA_NUMBER}?text=${message}`;
-  window.open(waURL, '_blank');
+/* Hero Section */
+
+.hero {
+    background: url('images/banner.jpg') center/cover no-repeat;
+    height: 60vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    color: white;
+    padding: 20px;
 }
 
-// hook buttons
-document.addEventListener('DOMContentLoaded', () => {
-  loadSheet();
+.hero h1 {
+    font-size: 48px;
+    margin: 0;
+}
 
-  document.getElementById('btnWhatsapp').addEventListener('click', () => {
-    const sel = document.getElementById('productSelect');
-    const idx = parseInt(sel.value, 10);
-    const p = products[idx];
-    if(!p) return alert('Please select a product.');
-    // just open chat (no prefilled order)
-    window.open(`https://wa.me/${WA_NUMBER}`, '_blank');
-  });
+.hero p {
+    font-size: 20px;
+}
 
-  document.getElementById('btnBuy').addEventListener('click', () => {
-    const sel = document.getElementById('productSelect');
-    const idx = parseInt(sel.value, 10);
-    const p = products[idx];
-    if(!p) return alert('Please select a product.');
-    openWhatsApp(p);
-  });
-});
-</script>
-</body>
-</html>
+.btn {
+    margin-top: 20px;
+    padding: 10px 25px;
+    background: #e91e63;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 18px;
+}
+
+.section {
+    padding: 50px 30px;
+    text-align: center;
+}
+
+.section h2 {
+    margin-bottom: 30px;
+    font-size: 32px;
+}
+
+/* Products Grid */
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 25px;
+}
+
+.product-card {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+.product-card img {
+    width: 100%;
+    border-radius: 10px;
+}
+
+.price {
+    font-size: 20px;
+    color: #e91e63;
+    font-weight: bold;
+}
+
+.btn-buy {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 20px;
+    background: green;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+/* Footer */
+
+footer {
+    background: #222;
+    color: #ccc;
+    text-align: center;
+    padding: 20px;
+}
