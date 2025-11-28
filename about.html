@@ -1,1 +1,46 @@
-<html><body><h2>About</h2></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>About — Cathy’s Dreamy Attire</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-row">
+      <div class="brand"><a href="index.html">Cathy's Dreamy Attire</a></div>
+      <nav class="main-nav">
+        <a href="index.html">Home</a>
+        <a href="collections.html">Collections</a>
+        <a href="about.html">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="section">
+      <h1>About Cathy’s Dreamy Attire</h1>
+      <p>We are a boutique dedicated to women’s fashion — custom designs, co-ord sets and ethnic wear crafted with care.</p>
+
+      <h2>Customer Feedback</h2>
+      <div class="feedback-grid">
+        <div class="feedback-card">“Loved the fabric and fit!” — Priya</div>
+        <div class="feedback-card">“Beautiful colours and quick response.” — Anjali</div>
+        <div class="feedback-card">“Perfect for occasions. Highly recommend.” — Ritu</div>
+      </div>
+
+      <h2>Contact Us</h2>
+      <p><a class="btn-primary" href="https://wa.me/917907555924?text=Hello%20Cathy%27s%20Dreamy%20Attire%20-%20I%20want%20to%20inquire">Message us on WhatsApp</a></p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap center">
+      <p>© <span id="yearAbout"></span> Cathy’s Dreamy Attire®</p>
+    </div>
+  </footer>
+
+  <script>document.getElementById('yearAbout').textContent = new Date().getFullYear();</script>
+</body>
+</html>

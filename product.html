@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Dreamy Collections — Cathy’s Dreamy Attire</title>
+  <title>Product — Cathy’s Dreamy Attire</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
@@ -19,32 +19,19 @@
   </header>
 
   <main class="wrap">
-    <section class="section">
-      <h1>Dreamy Collections</h1>
-
-      <div class="collection-section" id="trending">
-        <h2>TRENDING CO-ORD SETS</h2>
-        <div id="trendingGrid" class="product-grid"></div>
-      </div>
-
-      <div class="collection-section" id="ethnic">
-        <h2>ETHNIC COLLECTION</h2>
-        <div id="ethnicGrid" class="product-grid"></div>
-      </div>
-
-    </section>
+    <div id="productDetailContainer"></div>
   </main>
 
   <footer class="site-footer">
     <div class="wrap center">
-      <p>© <span id="yearColl"></span> Cathy’s Dreamy Attire®</p>
+      <p>© <span id="yearProd"></span> Cathy’s Dreamy Attire®</p>
     </div>
   </footer>
 
   <script>
     const CSV_PUB_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9RM9PuEfM9qPbZXALjzYFdGEoBiltayHlPSQlY9yEurdsRIQK1fgTfE-Wofkd821fdqADQ6O08Z4x/pub?gid=0&single=true&output=csv";
     const WA_NUMBER = "917907555924";
-    document.getElementById('yearColl').textContent = new Date().getFullYear();
+    document.getElementById('yearProd').textContent = new Date().getFullYear();
   </script>
 
   <script src="assets/js/app.js"></script>
