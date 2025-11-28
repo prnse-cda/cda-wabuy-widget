@@ -1,124 +1,73 @@
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #fafafa;
-    color: #333;
-}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Cathy's Dreamy Attire</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <div class="brand">
+        <a href="index.html">Cathy's Dreamy Attire</a>
+      </div>
+      <nav class="main-nav">
+        <a href="products.html">Shop All</a>
+        <a href="products.html#ETHNIC">Ethnic Collection</a>
+        <a href="products.html#CO-ORDS">Co-ords Collection</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
 
-/* Header */
+  <main class="wrap">
+    <section class="hero">
+      <div class="hero-text">
+        <h1>Dreamy Ethnic & Co-Ord Collections</h1>
+        <p>Elegant • Ethnic • Trendy Women’s Wear</p>
+        <a class="cta" href="products.html">Shop Now</a>
+      </div>
+      <div class="hero-image"></div>
+    </section>
 
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: white;
-    padding: 15px 30px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    position: sticky;
-    top: 0;
-    z-index: 10;
-}
+    <section class="home-section">
+      <h2>Featured Collections</h2>
+      <div class="collections">
+        <a class="collection-card" href="products.html#ETHNIC">
+          <div class="col-thumb eth"></div>
+          <div class="col-title">Ethnic Collection</div>
+        </a>
+        <a class="collection-card" href="products.html#CO-ORDS">
+          <div class="col-thumb coord"></div>
+          <div class="col-title">Co-ords Collection</div>
+        </a>
+      </div>
+    </section>
 
-header .logo {
-    font-size: 22px;
-    font-weight: bold;
-}
+    <section class="home-section">
+      <h2>Best Sellers</h2>
+      <div id="featuredGrid" class="product-grid">
+        <!-- script.js will populate -->
+      </div>
+    </section>
 
-header nav a {
-    margin-right: 20px;
-    text-decoration: none;
-    color: #333;
-    font-weight: 600;
-}
+    <section id="contact" class="home-section">
+      <h2>Contact</h2>
+      <p>WhatsApp: <a href="https://wa.me/917907555924">+91 7907555924</a></p>
+      <p>Email: your@email.com</p>
+    </section>
 
-header nav a:hover {
-    color: #e91e63;
-}
+  </main>
 
-/* Hero Section */
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>© <span id="year"></span> Cathy’s Dreamy Attire® • All Rights Reserved</p>
+    </div>
+  </footer>
 
-.hero {
-    background: url('images/banner.jpg') center/cover no-repeat;
-    height: 60vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    text-align: center;
-    color: white;
-    padding: 20px;
-}
-
-.hero h1 {
-    font-size: 48px;
-    margin: 0;
-}
-
-.hero p {
-    font-size: 20px;
-}
-
-.btn {
-    margin-top: 20px;
-    padding: 10px 25px;
-    background: #e91e63;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    font-size: 18px;
-}
-
-.section {
-    padding: 50px 30px;
-    text-align: center;
-}
-
-.section h2 {
-    margin-bottom: 30px;
-    font-size: 32px;
-}
-
-/* Products Grid */
-
-.product-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 25px;
-}
-
-.product-card {
-    background: white;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-    text-align: center;
-}
-
-.product-card img {
-    width: 100%;
-    border-radius: 10px;
-}
-
-.price {
-    font-size: 20px;
-    color: #e91e63;
-    font-weight: bold;
-}
-
-.btn-buy {
-    display: inline-block;
-    margin-top: 10px;
-    padding: 8px 20px;
-    background: green;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-}
-
-/* Footer */
-
-footer {
-    background: #222;
-    color: #ccc;
-    text-align: center;
-    padding: 20px;
-}
+  <script>const CSV_PUB_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9RM9PuEfM9qPbZXALjzYFdGEoBiltayHlPSQlY9yEurdsRIQK1fgTfE-Wofkd821fdqADQ6O08Z4x/pub?gid=0&single=true&output=csv";</script>
+  <script src="script.js"></script>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>
