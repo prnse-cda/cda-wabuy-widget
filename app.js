@@ -1,14 +1,14 @@
 /* =====================
-   CONFIG — use your links
+   CONFIG (do not edit unless needed)
    ===================== */
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9RM9PuEfM9qPbZXALjzYFdGEoBiltayHlPSQlY9yEurdsRIQK1fgTfE-Wofkd821fdqADQ6O08Z4x/pub?gid=0&single=true&output=csv";
-const WHATSAPP_NUMBER = "917907555924"; // no plus sign
+const WHATSAPP_NUMBER = "917907555924"; // no +
 /* ===================== */
 
-const DRIVE_IMAGE_URL = (fileId) => `https://drive.google.com/uc?export=view&id=${fileId}`;
+const DRIVE_IMAGE_URL = (id) => `https://drive.google.com/uc?export=view&id=${id}`;
 
-const $ = (s) => document.querySelector(s);
-const $all = (s) => Array.from(document.querySelectorAll(s));
+const $ = sel => document.querySelector(sel);
+const $all = sel => Array.from(document.querySelectorAll(sel));
 
 const productsGrid = $("#productsGrid");
 const loadingEl = $("#loading");
@@ -18,15 +18,16 @@ const cartCountEl = $("#cartCount");
 
 let PRODUCTS = [];
 let CART = loadCart();
-let CURRENT = null; // product shown in modal
+let CURRENT_PRODUCT = null;
 
-/* UI wiring */
+/* ---- startup ---- */
 document.addEventListener("DOMContentLoaded", () => {
-  setupUI();
-  fetchProducts();
+  wireUI();
+  loadProducts();
 });
 
-function setupUI(){
+/* ---- UI wiring ---- */
+function wireUI(){
   $("#viewCartBtn")?.addEventListener("click", openCart);
   $("#closeCart")?.addEventListener("click", closeCart);
   $("#continueShopping")?.addEventListener("click", closeCart);
@@ -34,18 +35,27 @@ function setupUI(){
   $("#closeCheckout")?.addEventListener("click", closeCheckout);
   $("#backToCart")?.addEventListener("click", () => { closeCheckout(); openCart(); });
 
-  $("#closeProduct")?.addEventListener("click", () => $("#productModal").classList.add("hidden"));
-  $("#modalAdd")?.addEventListener("click", onModalAdd);
-  $("#modalBuy")?.addEventListener("click", onModalBuy);
+  $("#closeProduct")?.addEventListener("click", () => { hideModal("#productModal"); });
+  $("#modalAdd")?.addEventListener("click", modalAddToCart);
+  $("#modalBuy")?.addEventListener("click", modalBuyNow);
 
   categoryFilter?.addEventListener("change", renderProducts);
-  searchInput?.addEventListener("input", debounce(renderProducts, 240));
+  searchInput?.addEventListener("input", debounce(renderProducts, 220));
 
-  $("#cartItems")?.addEventListener("click", (e) => {
-    if(e.target.matches(".qty-minus") || e.target.matches(".qty-plus") || e.target.matches(".remove-item")){
-      const pid = e.target.closest("[data-pid]")?.dataset?.pid;
-      const psize = e.target.closest("[data-pid]")?.dataset?.size || undefined;
-      if(!pid) return;
+  document.addEventListener("click", (e) => {
+    if(e.target.closest("[data-p-action='view']")) {
+      const pid = e.target.closest("[data-p-action='view']").dataset.pid;
+      openProduct(pid);
+    } else if(e.target.closest("[data-p-action='add']")) {
+      const pid = e.target.closest("[data-p-action='add']").dataset.pid;
+      const prod = PRODUCTS.find(p => p.id === pid);
+      if(prod && prod.size && prod.size.length) openProduct(pid);
+      else { addToCartWithSize(pid, ""); showToast("Added to cart"); }
+    } else if(e.target.matches(".qty-minus") || e.target.matches(".qty-plus") || e.target.matches(".remove-item")) {
+      const itemEl = e.target.closest("[data-cart-id]");
+      if(!itemEl) return;
+      const pid = itemEl.dataset.cartId;
+      const psize = itemEl.dataset.cartSize || "";
       if(e.target.matches(".qty-minus")) changeQty(pid, -1, psize);
       if(e.target.matches(".qty-plus")) changeQty(pid, +1, psize);
       if(e.target.matches(".remove-item")) removeCartItem(pid, psize);
@@ -53,9 +63,8 @@ function setupUI(){
     }
   });
 
-  // size change in cart
   document.addEventListener("change", (e) => {
-    if(e.target.matches(".cart-size")){
+    if(e.target.matches(".cart-size")) {
       const pid = e.target.dataset.pid;
       const size = e.target.value;
       updateCartItemSize(pid, size);
@@ -71,92 +80,89 @@ function setupUI(){
   updateCartCount();
 }
 
-/* Fetch & parse CSV */
-async function fetchProducts(){
+/* ---- products loading ---- */
+async function loadProducts(){
   try {
     loadingEl.style.display = "block";
     const res = await fetch(SHEET_CSV_URL);
-    if(!res.ok) throw new Error("Sheet fetch error " + res.status);
-    const csv = await res.text();
-    const rows = parseCSV(csv);
-    PRODUCTS = rows.map(normalizeProduct);
-    populateFilters();
+    if(!res.ok) throw new Error("Sheet fetch failed: " + res.status);
+    const text = await res.text();
+    const rows = parseCSV(text);
+    PRODUCTS = rows.map(normalizeRow);
+    populateCategories();
     renderProducts();
-  } catch(err){
+  } catch(err) {
     console.error(err);
-    loadingEl.textContent = "Failed to load products. Check your sheet URL & publish settings.";
+    loadingEl.textContent = "Unable to load products. Check sheet URL and published-to-web setting.";
   } finally {
     loadingEl.style.display = "none";
   }
 }
 
-/* CSV parsing (handles quoted commas) */
-function parseCSV(text){
-  const lines = text.split(/\r?\n/).filter(Boolean);
+/* ---- CSV parser (simple, robust) ---- */
+function parseCSV(csv) {
+  const lines = csv.split(/\r?\n/).filter(l => l.trim() !== "");
   if(lines.length === 0) return [];
-  const headers = parseLine(lines[0]);
+  const headers = splitCsvLine(lines[0]).map(h => h.trim());
   const out = [];
   for(let i=1;i<lines.length;i++){
-    const vals = parseLine(lines[i]);
+    const vals = splitCsvLine(lines[i]);
     const obj = {};
     for(let j=0;j<headers.length;j++){
-      obj[headers[j].trim()] = (vals[j] !== undefined) ? vals[j].trim() : "";
+      obj[headers[j]] = vals[j] !== undefined ? vals[j].trim() : "";
     }
-    // skip empty rows
+    // skip blank row
     if(Object.values(obj).every(v => v === "")) continue;
     out.push(obj);
   }
   return out;
 }
-function parseLine(line){
-  const res = [];
-  let cur = "", inQ=false;
+function splitCsvLine(line){
+  const out = []; let cur = "", inQuotes = false;
   for(let i=0;i<line.length;i++){
     const ch = line[i];
-    if(ch === '"'){
-      if(inQ && line[i+1] === '"'){ cur += '"'; i++; } else { inQ = !inQ; }
-    } else if(ch === ',' && !inQ){
-      res.push(cur); cur = "";
-    } else {
-      cur += ch;
-    }
+    if(ch === '"') {
+      if(inQuotes && line[i+1] === '"') { cur += '"'; i++; }
+      else inQuotes = !inQuotes;
+    } else if(ch === ',' && !inQuotes) {
+      out.push(cur); cur = "";
+    } else cur += ch;
   }
-  res.push(cur);
-  return res;
+  out.push(cur);
+  return out;
 }
 
-/* Normalize product - case-insensitive headers supported */
-function normalizeProduct(row){
-  const g = (key) => {
-    const found = Object.keys(row).find(h => h.toLowerCase() === key.toLowerCase());
-    return found ? row[found] : "";
+/* ---- normalize row to product object ---- */
+function normalizeRow(row) {
+  const find = (k) => {
+    const key = Object.keys(row).find(h => h.toLowerCase() === k.toLowerCase());
+    return key ? row[key] : "";
   };
-
-  const rawImages = g("image_id") || g("imageid") || g("image") || "";
-  const image_ids = rawImages.split(",").map(x => x.trim()).filter(Boolean);
-  const sizeList = (g("size") || g("sizes") || "").split(",").map(s => s.trim()).filter(Boolean);
-
-  const id = g("id") || Math.random().toString(36).slice(2,9);
-  const name = g("name") || g("title") || "";
-  const price = parseFloat((g("price")||"0").replace(/[^0-9.\-]/g,"")) || 0;
-  const category = g("category") || "Uncategorized";
-  const description = g("description") || g("desc") || "";
-
+  const rawImgs = find("image_id") || find("image") || "";
+  const image_ids = rawImgs.split(",").map(s => s.trim()).filter(Boolean);
+  const sizeList = (find("size") || find("sizes") || "").split(",").map(s => s.trim()).filter(Boolean);
+  const id = find("id") || Math.random().toString(36).slice(2,9);
+  const name = find("name") || find("title") || "";
+  const price = parseFloat((find("price") || "0").replace(/[^0-9.\-]/g, "")) || 0;
+  const category = find("category") || "Uncategorized";
+  const description = find("description") || find("desc") || "";
   return { id, name, price, category, description, image_ids, size: sizeList };
 }
 
-/* Filters and rendering */
-function populateFilters(){
+/* ---- render / filters ---- */
+function populateCategories(){
   const cats = [...new Set(PRODUCTS.map(p => p.category || "Uncategorized"))].sort();
+  if(!categoryFilter) return;
   categoryFilter.innerHTML = `<option value="all">All categories</option>` + cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
 }
 function renderProducts(){
-  const cat = categoryFilter.value;
-  const q = (searchInput.value || "").trim().toLowerCase();
+  if(!productsGrid) return;
+  const cat = categoryFilter ? categoryFilter.value : "all";
+  const q = searchInput ? (searchInput.value || "").trim().toLowerCase() : "";
   const filtered = PRODUCTS.filter(p => {
     if(cat !== "all" && p.category !== cat) return false;
     if(q){
-      const hay = (p.name + " " + (p.description||"") + " " + p.category).toLowerCase();
+      const hay = (p.name + " " + p.description + " " + p.category).toLowerCase();
       if(!hay.includes(q)) return false;
     }
     return true;
@@ -167,30 +173,30 @@ function renderProducts(){
     return;
   }
 
-  productsGrid.innerHTML = filtered.map(p => productCard(p)).join("");
+  productsGrid.innerHTML = filtered.map(p => productCardHTML(p)).join("");
 }
 
-/* Product card HTML */
-function productCard(p){
-  const img = (p.image_ids && p.image_ids.length) ? DRIVE_IMAGE_URL(p.image_ids[0]) : "";
-  const sizes = (p.size||[]).join(" • ");
+/* product card */
+function productCardHTML(p){
+  const img = p.image_ids && p.image_ids.length ? DRIVE_IMAGE_URL(p.image_ids[0]) : "";
+  const sizes = (p.size || []).join(" • ");
   return `
     <article class="card" data-id="${escapeHtml(p.id)}">
-      <div class="card-media" data-pid="${escapeHtml(p.id)}">
-        ${img ? `<img loading="lazy" src="${img}" alt="${escapeHtml(p.name)}"/>` : `<div style="height:200px;background:#f6f7fb;border-radius:8px"></div>`}
+      <div class="card-media">
+        ${img ? `<img loading="lazy" src="${img}" alt="${escapeHtml(p.name)}">` : `<div style="height:200px;background:#f6f7fb;border-radius:8px"></div>`}
       </div>
       <div>
         <h3>${escapeHtml(p.name)}</h3>
         <p>${escapeHtml(p.description || "")}</p>
         <div class="meta">
-          <div class="price-small">₹${p.price.toFixed(2)}</div>
+          <div class="muted">₹${(p.price||0).toFixed(2)}</div>
           <div class="muted">${escapeHtml(p.category)}</div>
         </div>
         <div class="actions">
           <div class="muted small">${escapeHtml(sizes)}</div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <button class="btn" data-action="view" data-pid="${escapeHtml(p.id)}">View</button>
-            <button class="btn" data-action="add" data-pid="${escapeHtml(p.id)}">Add</button>
+          <div style="display:flex;gap:8px">
+            <button data-p-action="view" data-pid="${escapeHtml(p.id)}" class="btn">View</button>
+            <button data-p-action="add" data-pid="${escapeHtml(p.id)}" class="btn">Add</button>
           </div>
         </div>
       </div>
@@ -198,39 +204,20 @@ function productCard(p){
   `;
 }
 
-/* Event delegation for card buttons */
-document.addEventListener("click", (e) => {
-  const view = e.target.closest("[data-action='view']");
-  const add = e.target.closest("[data-action='add']");
-  if(view){
-    const pid = view.dataset.pid;
-    openProduct(pid);
-  } else if(add){
-    const pid = add.dataset.pid;
-    // if product has sizes, open modal so user can choose; otherwise add default
-    const prod = PRODUCTS.find(x => x.id === pid);
-    if(prod?.size?.length){
-      openProduct(pid);
-    } else {
-      addToCartWithSize(pid, "");
-      showToast("Added to cart");
-    }
-  }
-});
-
-/* Product modal actions */
+/* ---- product modal ---- */
 function openProduct(pid){
   const p = PRODUCTS.find(x => x.id === pid);
   if(!p) return;
-  CURRENT = p;
+  CURRENT_PRODUCT = p;
   $("#modalName").textContent = p.name;
   $("#modalCategory").textContent = p.category;
   $("#modalDesc").textContent = p.description || "";
-  $("#modalPrice").textContent = (p.price||0).toFixed(2);
+  $("#modalPrice").textContent = (p.price || 0).toFixed(2);
 
   // images
   const main = $("#modalMainImage");
   const thumbs = $("#modalThumbs");
+  if(!main || !thumbs) return;
   thumbs.innerHTML = "";
   if(p.image_ids && p.image_ids.length){
     main.src = DRIVE_IMAGE_URL(p.image_ids[0]);
@@ -238,7 +225,7 @@ function openProduct(pid){
       const img = document.createElement("img");
       img.src = DRIVE_IMAGE_URL(id);
       img.alt = p.name;
-      img.className = idx===0 ? "active" : "";
+      if(idx === 0) img.classList.add("active");
       img.addEventListener("click", () => {
         main.src = DRIVE_IMAGE_URL(id);
         $all("#modalThumbs img").forEach(im => im.classList.remove("active"));
@@ -262,82 +249,63 @@ function openProduct(pid){
     sizeSelect.innerHTML = "";
   }
 
-  $("#productModal").classList.remove("hidden");
-  $("#productModal").setAttribute("aria-hidden", "false");
+  showModal("#productModal");
 }
 
-/* Modal add/buy */
-function onModalAdd(){
-  if(!CURRENT) return;
+/* modal add/buy handlers */
+function modalAddToCart(){
+  if(!CURRENT_PRODUCT) return;
   const size = $("#modalSizeSelect") ? $("#modalSizeSelect").value : "";
-  addToCartWithSize(CURRENT.id, size);
+  addToCartWithSize(CURRENT_PRODUCT.id, size);
   showToast("Added to cart");
-  $("#productModal").classList.add("hidden");
+  hideModal("#productModal");
 }
-function onModalBuy(){
-  if(!CURRENT) return;
+function modalBuyNow(){
+  if(!CURRENT_PRODUCT) return;
   const size = $("#modalSizeSelect") ? $("#modalSizeSelect").value : "";
-  addToCartWithSize(CURRENT.id, size);
-  openCart();
-  setTimeout(() => openCheckout(), 200);
-  $("#productModal").classList.add("hidden");
+  addToCartWithSize(CURRENT_PRODUCT.id, size);
+  showModal("#cartModal");
+  setTimeout(() => showModal("#checkoutModal"), 250);
+  hideModal("#productModal");
 }
 
-/* CART: stored as array of items with id, size, qty, price, name, image_id */
-function loadCart(){ try { return JSON.parse(localStorage.getItem("store_cart") || "[]"); } catch(e) { return []; } }
+/* ---- cart operations ---- */
+function loadCart(){ try { return JSON.parse(localStorage.getItem("store_cart") || "[]"); } catch(e){ return []; } }
 function saveCart(){ localStorage.setItem("store_cart", JSON.stringify(CART)); updateCartCount(); }
-function updateCartCount(){ cartCountEl.textContent = CART.reduce((s,i)=>s+i.qty, 0); }
+function updateCartCount(){ if(cartCountEl) cartCountEl.textContent = CART.reduce((s,i)=>s+i.qty, 0); }
 
-/* Add item (group by id+size) */
 function addToCartWithSize(pid, size){
   const prod = PRODUCTS.find(p => p.id === pid);
   if(!prod) return;
-  // find existing item same pid & size
-  const item = CART.find(i => i.id === pid && (i.size||"") === (size||""));
-  if(item){
-    item.qty += 1;
-  } else {
-    CART.push({
-      id: pid,
-      name: prod.name,
-      price: prod.price,
-      image_id: (prod.image_ids && prod.image_ids[0]) || "",
-      qty: 1,
-      size: size || ""
-    });
-  }
+  // try to find exact match id+size
+  const item = CART.find(i => i.id === pid && (i.size || "") === (size || ""));
+  if(item) item.qty += 1;
+  else CART.push({ id: pid, name: prod.name, price: prod.price, image_id: (prod.image_ids[0]||""), qty: 1, size: size || "" });
   saveCart();
 }
 
-/* change qty by pid+size (if multiple items share pid with different sizes, change the first matching) */
-function changeQty(pid, delta, optSize){
-  // find item whose id matches and optional size matches
-  const idx = CART.findIndex(i => i.id === pid && (optSize === undefined || i.size === optSize));
+function changeQty(pid, delta, size){
+  const idx = CART.findIndex(i => i.id === pid && (i.size || "") === (size || ""));
   if(idx === -1) return;
   CART[idx].qty += delta;
   if(CART[idx].qty <= 0) CART.splice(idx, 1);
   saveCart();
 }
-
-/* remove specific item (by pid+size) */
 function removeCartItem(pid, size){
-  CART = CART.filter(i => !(i.id === pid && (size === undefined || i.size === size)));
+  CART = CART.filter(i => !(i.id === pid && (i.size || "") === (size || "")));
   saveCart();
 }
-
-/* update cart item size (moves item to same pid+newsize if exists merge) */
 function updateCartItemSize(pid, newSize){
-  // find item (first match)
-  const item = CART.find(i => i.id === pid);
-  if(!item) return;
-  // if already same size, nothing
+  // find first matching item
+  const idx = CART.findIndex(i => i.id === pid);
+  if(idx === -1) return;
+  const item = CART[idx];
   if(item.size === newSize) return;
-  // check if another item for same pid+newSize exists
-  const other = CART.find(i => i.id === pid && i.size === newSize);
-  if(other){
-    other.qty += item.qty;
-    // remove old
-    CART = CART.filter(i => i !== item);
+  // if another exists with same pid+newSize merge
+  const otherIdx = CART.findIndex(i => i.id === pid && i.size === newSize);
+  if(otherIdx !== -1){
+    CART[otherIdx].qty += item.qty;
+    CART.splice(idx,1);
   } else {
     item.size = newSize;
   }
@@ -353,24 +321,22 @@ function renderCart(){
     $("#cartTotal").textContent = "0.00";
     return;
   }
-
   wrap.innerHTML = CART.map(item => {
     const sizes = getProductSizes(item.id);
     return `
-      <div class="cart-item" data-pid="${escapeHtml(item.id)}" data-size="${escapeHtml(item.size||"")}">
-        <img src="${item.image_id ? DRIVE_IMAGE_URL(item.image_id) : ''}" alt="${escapeHtml(item.name)}" />
+      <div class="cart-item" data-cart-id="${escapeHtml(item.id)}" data-cart-size="${escapeHtml(item.size||"")}">
+        <img src="${item.image_id ? DRIVE_IMAGE_URL(item.image_id) : ''}" alt="${escapeHtml(item.name)}"/>
         <div style="flex:1">
           <div style="display:flex;justify-content:space-between;align-items:center">
             <strong>${escapeHtml(item.name)}</strong>
             <div>₹${(item.price||0).toFixed(2)}</div>
           </div>
           <div style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-            <label style="font-size:0.9rem">Size:
+            <label>Size:
               <select class="cart-size" data-pid="${escapeHtml(item.id)}">
-                ${sizes.map(s => `<option value="${escapeHtml(s)}" ${item.size===s ? "selected" : ""}>${escapeHtml(s)}</option>`).join("")}
+                ${sizes.map(s => `<option value="${escapeHtml(s)}" ${item.size===s ? "selected":""}>${escapeHtml(s)}</option>`).join("")}
               </select>
             </label>
-
             <div style="display:flex;align-items:center;gap:8px">
               <button class="btn qty-minus">-</button>
               <div>${item.qty}</div>
@@ -382,34 +348,18 @@ function renderCart(){
       </div>
     `;
   }).join("");
-
   $("#cartTotal").textContent = cartTotal().toFixed(2);
-  $("#cartCount").textContent = CART.reduce((s,i)=>s+i.qty, 0);
+  updateCartCount();
 }
 
-/* helper - sizes for a product */
 function getProductSizes(pid){
   const p = PRODUCTS.find(x => x.id === pid);
   return p?.size || [];
 }
+function cartTotal(){ return CART.reduce((s,i)=> s + (i.price * i.qty), 0); }
 
-/* totals */
-function cartTotal(){ return CART.reduce((s,i)=> s + i.price * i.qty, 0); }
-
-/* Cart modal open/close */
-function openCart(){
-  renderCart();
-  $("#cartModal").classList.remove("hidden");
-}
-function closeCart(){ $("#cartModal").classList.add("hidden"); }
-
-/* Checkout */
-function openCheckout(){
-  if(CART.length === 0){ showToast("Cart is empty"); return; }
-  $("#checkoutModal").classList.remove("hidden");
-}
-function closeCheckout(){ $("#checkoutModal").classList.add("hidden"); }
-
+/* ---- checkout ---- */
+function openCheckout(){ if(CART.length === 0) return showToast("Cart is empty"); showModal("#checkoutModal"); }
 function handleCheckout(formData){
   const name = formData.get("name");
   const phone = formData.get("phone");
@@ -420,26 +370,39 @@ function handleCheckout(formData){
   const total = cartTotal().toFixed(2);
   const message = `New order from website\n\nCustomer: ${name}\nPhone: ${phone}\nAddress: ${address}\n\nItems:\n${itemsText}\n\nTotal: ₹${total}\n\nNotes: ${notes}`;
 
-  const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-  window.open(waUrl, "_blank");
+  const wa = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+  window.open(wa, "_blank");
 
-  // clear cart after opening WA
   CART = [];
   saveCart();
-  closeCheckout();
-  closeCart();
-  showToast("Order opened in WhatsApp. Please send to complete the purchase.");
+  hideModal("#checkoutModal");
+  hideModal("#cartModal");
+  showToast("Opened WhatsApp with order. Please send to complete.");
 }
 
-/* Utilities */
-function escapeHtml(s){ if(s === null || s === undefined) return ""; return String(s).replace(/[&<>"']/g, (m)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
+/* ---- helpers: show/hide modal ---- */
+function showModal(sel){
+  const el = $(sel);
+  if(!el) return;
+  el.classList.remove("hidden");
+  el.setAttribute("aria-hidden", "false");
+}
+function hideModal(sel){
+  const el = $(sel);
+  if(!el) return;
+  el.classList.add("hidden");
+  el.setAttribute("aria-hidden", "true");
+}
+
+/* ---- utilities ---- */
+function escapeHtml(s){ if(s === null || s === undefined) return ""; return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 function showToast(msg){
   const el = document.createElement("div");
   el.textContent = msg;
   el.style.position = "fixed";
   el.style.left = "50%";
   el.style.transform = "translateX(-50%)";
-  el.style.bottom = "24px";
+  el.style.bottom = "22px";
   el.style.padding = "10px 14px";
   el.style.background = "#111";
   el.style.color = "#fff";
@@ -449,4 +412,4 @@ function showToast(msg){
   setTimeout(()=> el.style.opacity = 0, 2500);
   setTimeout(()=> el.remove(), 3200);
 }
-function debounce(fn, ms = 150){ let t; return (...a) => { clearTimeout(t); t = setTimeout(()=>fn(...a), ms); }; }
+function debounce(fn, ms = 150){ let t; return (...a)=>{ clearTimeout(t); t = setTimeout(()=>fn(...a), ms); }; }
