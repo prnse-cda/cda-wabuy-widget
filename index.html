@@ -9,23 +9,22 @@
 <body>
   <header class="site-header">
     <div class="brand-wrap">
-      <img src="assets/logo.PNG" alt="logo" class="logo" />
+      <img src="assets/logo.png" alt="logo" class="logo" />
       <h1 class="brand">Cathy's Dreamy Attire</h1>
     </div>
     <div class="header-controls">
       <select id="categoryFilter" aria-label="Filter by category"><option value="all">All categories</option></select>
-      <!-- <select id="sizeFilter" aria-label="Filter by size"><option value="all">All sizes</option></select> -->
       <button id="viewCartBtn" class="button">Cart (<span id="cartCount">0</span>)</button>
     </div>
   </header>
 
   <main>
-    <section id="productsGrid" class="products-grid"></section>
+    <section id="productsGrid" class="products-grid" aria-live="polite"></section>
 
-    <!-- Product details modal (gallery + details) -->
-    <section id="productModal" class="modal hidden">
-      <div class="modal-content">
-        <button class="close-btn" id="closeProduct">×</button>
+    <!-- Product details modal (gallery + details + size select) -->
+    <section id="productModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-content" role="dialog" aria-modal="true">
+        <button class="close-btn" id="closeProduct" aria-label="Close">×</button>
         <div class="product-details">
           <div class="gallery" id="productGallery"></div>
           <div class="product-info">
@@ -33,7 +32,12 @@
             <div id="productCategory" class="muted"></div>
             <p id="productDesc"></p>
             <div class="price">₹<span id="productPrice">0.00</span></div>
-            <div class="sizes" id="productSizes"></div>
+
+            <div class="sizes" id="productSizesWrap" style="margin-top:10px;">
+              <label style="display:block;margin-bottom:6px">Size</label>
+              <select id="productSizeSelect"></select>
+            </div>
+
             <div style="margin-top:12px;">
               <button id="addFromModal" class="button add">Add to cart</button>
             </div>
@@ -43,9 +47,9 @@
     </section>
 
     <!-- Cart modal -->
-    <section id="cartModal" class="modal hidden">
+    <section id="cartModal" class="modal hidden" aria-hidden="true">
       <div class="modal-content">
-        <button class="close-btn" id="closeCart">×</button>
+        <button class="close-btn" id="closeCart" aria-label="Close">×</button>
         <h2>Your Cart</h2>
         <div id="cartItems"></div>
         <div class="cart-summary">
@@ -59,9 +63,9 @@
     </section>
 
     <!-- Checkout modal -->
-    <section id="checkoutModal" class="modal hidden">
+    <section id="checkoutModal" class="modal hidden" aria-hidden="true">
       <div class="modal-content">
-        <button class="close-btn" id="closeCheckout">×</button>
+        <button class="close-btn" id="closeCheckout" aria-label="Close">×</button>
         <h2>Checkout</h2>
         <form id="checkoutForm">
           <label>

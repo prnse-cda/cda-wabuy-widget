@@ -1,22 +1,9 @@
 /* ================
-   CONFIG — edit only these if needed
+   CONFIG
    ================ */
-
-/*
-Provided by you:
-- WhatsApp Business number: +917907555924 (we use without '+')
-- Google Sheet CSV link: (public)
-- Drive image IDs: comma-separated in the sheet image_id column
-
-No other config required.
-*/
-
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT9RM9PuEfM9qPbZXALjzYFdGEoBiltayHlPSQlY9yEurdsRIQK1fgTfE-Wofkd821fdqADQ6O08Z4x/pub?gid=0&single=true&output=csv";
 const WHATSAPP_NUMBER = "917907555924"; // no '+' sign
-
-/* ================
-   End config
-   ================ */
+/* ================ */
 
 const DRIVE_IMAGE_URL = (fileId) => `https://drive.google.com/uc?export=view&id=${fileId}`;
 
@@ -26,7 +13,6 @@ const $all = (sel) => Array.from(document.querySelectorAll(sel));
 const productsGrid = $("#productsGrid");
 const loadingEl = $("#loading");
 const categoryFilter = $("#categoryFilter");
-/*const sizeFilter = $("#sizeFilter");*/
 const cartCountEl = $("#cartCount");
 
 let PRODUCTS = [];
@@ -48,7 +34,6 @@ function setupUI(){
   $("#closeProduct")?.addEventListener("click", () => $("#productModal").classList.add("hidden"));
 
   categoryFilter.addEventListener("change", renderProducts);
-  /* sizeFilter.addEventListener("change", renderProducts); */
 
   document.addEventListener("click", (e) => {
     if (e.target.matches(".add-to-cart")) {
@@ -60,15 +45,16 @@ function setupUI(){
     }
   });
 
+  // cart size change
   document.addEventListener("change", (e) => {
-  if (e.target.matches(".cart-size")) {
-    const pid = e.target.dataset.pid;
-    const item = CART.find(i => i.id === pid);
-    if (item) {
-      item.size = e.target.value;
-      saveCart();
+    if (e.target.matches(".cart-size")) {
+      const pid = e.target.dataset.pid;
+      const item = CART.find(i => i.id === pid);
+      if (item) {
+        item.size = e.target.value;
+        saveCart();
+      }
     }
-  }
   });
 
   $("#cartItems")?.addEventListener("click", (e) => {
@@ -89,8 +75,11 @@ function setupUI(){
 
   $("#addFromModal")?.addEventListener("click", ()=>{
     if(!CURRENT_MODAL_PRODUCT) return;
-    addToCart(CURRENT_MODAL_PRODUCT.id);
+    const sizeSelect = $("#productSizeSelect");
+    const selectedSize = sizeSelect ? sizeSelect.value : (CURRENT_MODAL_PRODUCT.size?.[0] || "");
+    addToCartWithSize(CURRENT_MODAL_PRODUCT.id, selectedSize);
     showToast("Added to cart");
+    $("#productModal").classList.add("hidden");
   });
 
   updateCartCount();
@@ -123,12 +112,10 @@ function parseCSV(csv){
   const rows = [];
   for(let i=1;i<lines.length;i++){
     const vals = parseCSVLine(lines[i]);
-    // handle line shorter than headers
     const obj = {};
     for(let j=0;j<headers.length;j++){
       obj[headers[j]] = vals[j] !== undefined ? vals[j] : "";
     }
-    // skip empty (all blank)
     if(Object.values(obj).every(v => (v === "" || v === null))) continue;
     rows.push(obj);
   }
@@ -152,14 +139,12 @@ function parseCSVLine(line){
 
 /* Normalize product rows (case-insensitive header access) */
 function normalizeProduct(row){
-  // helper to get by header name ignoring case
   const get = (name) => {
     const k = Object.keys(row).find(h => h.toLowerCase() === name.toLowerCase());
     return k ? row[k].trim() : "";
   };
 
-  const rawImageIds = get("image_id") || get("imageid") || get("image");
-  // allow comma-separated drive ids and trim them
+  const rawImageIds = get("image_id") || get("imageid") || get("image") || "";
   const imageIds = rawImageIds.split(",").map(s=>s.trim()).filter(Boolean);
 
   return {
@@ -167,7 +152,7 @@ function normalizeProduct(row){
     name: get("name") || get("title") || "",
     price: parseFloat((get("price") || get("amount") || "0").replace(/[^0-9.\-]/g,"")) || 0,
     size: ( (get("size") || get("sizes") || "").split(",").map(s=>s.trim()).filter(Boolean) ),
-    image_ids: imageIds, // array of drive file ids
+    image_ids: imageIds,
     category: get("category") || "Uncategorized",
     description: get("description") || get("desc") || ""
   };
@@ -177,17 +162,12 @@ function normalizeProduct(row){
 function populateFilters(){
   const cats = [...new Set(PRODUCTS.map(p => p.category || "Uncategorized"))].sort();
   categoryFilter.innerHTML = `<option value="all">All categories</option>` + cats.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
-  /*const sizes = new Set();
-  PRODUCTS.forEach(p => (p.size||[]).forEach(s => sizes.add(s)));
-  sizeFilter.innerHTML = `<option value="all">All sizes</option>` + [...sizes].sort().map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");*/
 }
 
 function renderProducts(){
   const cat = categoryFilter.value;
-  const size = sizeFilter.value;
   const filtered = PRODUCTS.filter(p => {
     if(cat !== "all" && p.category !== cat) return false;
-    /*if(size !== "all" && (!p.size || !p.size.includes(size))) return false;*/
     return true;
   });
   if(filtered.length === 0) {
@@ -216,17 +196,14 @@ function productCardHTML(p){
         <div style="font-size:.9rem;color:#666">${escapeHtml(sizes)}</div>
         <div style="display:flex;gap:8px">
           <button class="button add add-to-cart" data-pid="${escapeHtml(p.id)}">Add</button>
-          <button class="button" data-pid="${escapeHtml(p.id)}" onclick="openProductModal('${escapeHtml(p.id)}')">View</button>
+          <button class="button view-product" data-pid="${escapeHtml(p.id)}">View</button>
         </div>
       </div>
     </div>
   `;
 }
 
-/* --------- Product modal (gallery + details) --------- */
-window.openProductModal = function(pid){
-  openProductModal(pid);
-};
+/* --------- Product modal (gallery + details + size select) --------- */
 function openProductModal(pid){
   const p = PRODUCTS.find(x => x.id === pid);
   if(!p) return;
@@ -235,7 +212,16 @@ function openProductModal(pid){
   $("#productCategory").textContent = p.category;
   $("#productDesc").textContent = p.description || "";
   $("#productPrice").textContent = (p.price || 0).toFixed(2);
-  $("#productSizes").textContent = (p.size||[]).join(" • ");
+
+  const sizeWrap = $("#productSizesWrap");
+  const sizeSelect = $("#productSizeSelect");
+  if(p.size && p.size.length){
+    sizeWrap.style.display = "block";
+    sizeSelect.innerHTML = p.size.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
+  } else {
+    sizeWrap.style.display = "none";
+    sizeSelect.innerHTML = "";
+  }
 
   const gallery = $("#productGallery");
   gallery.innerHTML = "";
@@ -276,23 +262,33 @@ function loadCart(){
 }
 function saveCart(){ localStorage.setItem("store_cart", JSON.stringify(CART)); updateCartCount(); }
 function updateCartCount(){ const count = CART.reduce((s,i)=>s+i.qty,0); cartCountEl.textContent = count; }
-function addToCart(pid){
+
+function addToCartWithSize(pid, size) {
   const prod = PRODUCTS.find(p=>p.id==pid);
   if(!prod) return showToast("Product not found");
-  const item = CART.find(i=>i.id===pid);
+  const item = CART.find(i=>i.id===pid && i.size === size);
   if(item) item.qty++;
-  else
+  else {
     CART.push({
       id: pid,
       name: prod.name,
       price: prod.price,
       image_id: (prod.image_ids && prod.image_ids[0]) || "",
       qty: 1,
-      size: prod.size?.[0] || ""
+      size: size || (prod.size?.[0] || "")
     });
+  }
   saveCart();
+}
+
+function addToCart(pid){
+  // default add: use product default size if exists
+  const prod = PRODUCTS.find(p=>p.id==pid);
+  const defaultSize = prod?.size?.[0] || "";
+  addToCartWithSize(pid, defaultSize);
   showToast("Added to cart");
 }
+
 function changeQty(pid, delta){
   const item = CART.find(i=>i.id===pid);
   if(!item) return;
@@ -307,10 +303,12 @@ function cartTotal(){ return CART.reduce((s,i)=> s + (i.price * i.qty), 0); }
 /* --------- Cart UI --------- */
 function openCart(){ renderCart(); $("#cartModal").classList.remove("hidden"); }
 function closeCart(){ $("#cartModal").classList.add("hidden"); }
+
 function getProductSizes(pid) {
   const p = PRODUCTS.find(x => x.id === pid);
   return p?.size || [];
 }
+
 function renderCart(){
   const wrap = $("#cartItems");
   if(!wrap) return;
@@ -334,9 +332,9 @@ function renderCart(){
             </select>
           </label>
 
-          <button class="button qty-minus">-</button>
+          <button class="button qty-minus" aria-label="Decrease quantity">-</button>
           <div>${item.qty}</div>
-          <button class="button qty-plus">+</button>
+          <button class="button qty-plus" aria-label="Increase quantity">+</button>
           <button class="button remove-item" style="margin-left:12px">Remove</button>
         </div>
       </div>
@@ -356,12 +354,11 @@ function handleCheckout(formData){
   const notes = formData.get("notes") || "";
 
   const itemsText = CART.map(i =>
-  `${i.name} (${i.size || "No size"}) x${i.qty} — ₹${(i.price * i.qty).toFixed(2)}`
+    `${i.name} (${i.size || "No size"}) x${i.qty} — ₹${(i.price * i.qty).toFixed(2)}`
   ).join("\n");
   const total = cartTotal().toFixed(2);
   const message = `New order from website\n\nCustomer: ${name}\nPhone: ${phone}\nAddress: ${address}\n\nItems:\n${itemsText}\n\nTotal: ₹${total}\n\nNotes: ${notes}`;
 
-  // open WhatsApp using wa.me
   const wa = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
   window.open(wa, "_blank");
 
@@ -384,7 +381,4 @@ function showToast(msg){
   el.style.color = "#fff";
   el.style.borderRadius = "8px";
   el.style.zIndex = 9999;
-  document.body.appendChild(el);
-  setTimeout(()=> el.style.opacity = 0, 2500);
-  setTimeout(()=> el.remove(), 3200);
-}
+  document.body.appendCh
