@@ -5,95 +5,115 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Cathy's Dreamy Attire</title>
   <link rel="stylesheet" href="styles.css" />
+  <meta name="description" content="Cathy's Dreamy Attire — clothing store" />
 </head>
 <body>
   <header class="site-header">
-    <div class="brand-wrap">
-      <img src="assets/logo.png" alt="logo" class="logo" />
-      <h1 class="brand">Cathy's Dreamy Attire</h1>
-    </div>
-    <div class="header-controls">
-      <select id="categoryFilter" aria-label="Filter by category"><option value="all">All categories</option></select>
-      <button id="viewCartBtn" class="button">Cart (<span id="cartCount">0</span>)</button>
+    <div class="site-top wrap">
+      <div class="brand">
+        <a href="./" class="brand-link">
+          <img src="assets/logo.png" alt="Cathy's Dreamy Attire" class="logo" onerror="this.style.display='none'"/>
+          <span class="brand-text">Cathy's Dreamy Attire</span>
+        </a>
+      </div>
+
+      <div class="controls">
+        <input id="searchInput" type="search" placeholder="Search products..." aria-label="Search products" />
+        <select id="categoryFilter" aria-label="Filter by category">
+          <option value="all">All categories</option>
+        </select>
+        <button id="viewCartBtn" class="btn cart-btn">Cart (<span id="cartCount">0</span>)</button>
+      </div>
     </div>
   </header>
 
-  <main>
+  <main class="wrap">
+    <section class="hero">
+      <div class="hero-inner">
+        <h1>New arrivals — Cathy’s Dreamy Attire</h1>
+        <p>Beautiful, comfortable clothing — pick your favorite and message us to buy.</p>
+      </div>
+    </section>
+
     <section id="productsGrid" class="products-grid" aria-live="polite"></section>
-
-    <!-- Product details modal (gallery + details + size select) -->
-    <section id="productModal" class="modal hidden" aria-hidden="true">
-      <div class="modal-content" role="dialog" aria-modal="true">
-        <button class="close-btn" id="closeProduct" aria-label="Close">×</button>
-        <div class="product-details">
-          <div class="gallery" id="productGallery"></div>
-          <div class="product-info">
-            <h2 id="productName"></h2>
-            <div id="productCategory" class="muted"></div>
-            <p id="productDesc"></p>
-            <div class="price">₹<span id="productPrice">0.00</span></div>
-
-            <div class="sizes" id="productSizesWrap" style="margin-top:10px;">
-              <label style="display:block;margin-bottom:6px">Size</label>
-              <select id="productSizeSelect"></select>
-            </div>
-
-            <div style="margin-top:12px;">
-              <button id="addFromModal" class="button add">Add to cart</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Cart modal -->
-    <section id="cartModal" class="modal hidden" aria-hidden="true">
-      <div class="modal-content">
-        <button class="close-btn" id="closeCart" aria-label="Close">×</button>
-        <h2>Your Cart</h2>
-        <div id="cartItems"></div>
-        <div class="cart-summary">
-          <div>Total: ₹<span id="cartTotal">0</span></div>
-          <div class="cart-actions">
-            <button id="continueShopping" class="button">Continue shopping</button>
-            <button id="checkoutBtn" class="button primary">Checkout</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Checkout modal -->
-    <section id="checkoutModal" class="modal hidden" aria-hidden="true">
-      <div class="modal-content">
-        <button class="close-btn" id="closeCheckout" aria-label="Close">×</button>
-        <h2>Checkout</h2>
-        <form id="checkoutForm">
-          <label>
-            Full name
-            <input type="text" name="name" required />
-          </label>
-          <label>
-            Phone number
-            <input type="tel" name="phone" required />
-          </label>
-          <label>
-            Address
-            <textarea name="address" rows="3" required></textarea>
-          </label>
-          <label>
-            Notes (optional)
-            <textarea name="notes" rows="2"></textarea>
-          </label>
-          <div class="form-actions">
-            <button type="button" id="backToCart" class="button">Back to cart</button>
-            <button type="submit" class="button primary">Buy</button>
-          </div>
-        </form>
-      </div>
-    </section>
 
     <div id="loading" class="loading">Loading products…</div>
   </main>
+
+  <!-- Product modal -->
+  <div id="productModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-panel">
+      <button id="closeProduct" class="modal-close" aria-label="Close">×</button>
+      <div class="modal-body">
+        <div class="modal-left">
+          <img id="modalMainImage" class="modal-main-image" alt="Product image"/>
+          <div id="modalThumbs" class="modal-thumbs"></div>
+        </div>
+        <div class="modal-right">
+          <h2 id="modalName"></h2>
+          <div id="modalCategory" class="muted"></div>
+          <p id="modalDesc"></p>
+          <div class="price">₹ <span id="modalPrice">0.00</span></div>
+
+          <div id="modalSizeWrap" class="field">
+            <label for="modalSizeSelect">Select size</label>
+            <select id="modalSizeSelect"></select>
+          </div>
+
+          <div class="modal-actions">
+            <button id="modalAdd" class="btn">Add to cart</button>
+            <button id="modalBuy" class="btn primary">Buy now</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart modal -->
+  <div id="cartModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-panel small">
+      <button id="closeCart" class="modal-close" aria-label="Close">×</button>
+      <h3>Your Cart</h3>
+      <div id="cartItems"></div>
+      <div class="cart-footer">
+        <div>Total: ₹<span id="cartTotal">0.00</span></div>
+        <div class="cart-actions">
+          <button id="continueShopping" class="btn">Continue shopping</button>
+          <button id="checkoutBtn" class="btn primary">Checkout</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checkout modal -->
+  <div id="checkoutModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-panel small">
+      <button id="closeCheckout" class="modal-close" aria-label="Close">×</button>
+      <h3>Checkout</h3>
+      <form id="checkoutForm">
+        <label>
+          Full name
+          <input name="name" type="text" required />
+        </label>
+        <label>
+          Phone number
+          <input name="phone" type="tel" required placeholder="e.g. +9198xxxxxxx" />
+        </label>
+        <label>
+          Address
+          <textarea name="address" rows="3" required></textarea>
+        </label>
+        <label>
+          Notes (optional)
+          <textarea name="notes" rows="2"></textarea>
+        </label>
+        <div class="form-actions">
+          <button type="button" id="backToCart" class="btn">Back</button>
+          <button type="submit" class="btn primary">Buy</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <footer class="site-footer">
     <div class="wrap center">
