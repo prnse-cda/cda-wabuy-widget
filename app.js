@@ -26,7 +26,7 @@ const $all = (sel) => Array.from(document.querySelectorAll(sel));
 const productsGrid = $("#productsGrid");
 const loadingEl = $("#loading");
 const categoryFilter = $("#categoryFilter");
-const sizeFilter = $("#sizeFilter");
+/*const sizeFilter = $("#sizeFilter");*/
 const cartCountEl = $("#cartCount");
 
 let PRODUCTS = [];
@@ -48,7 +48,7 @@ function setupUI(){
   $("#closeProduct")?.addEventListener("click", () => $("#productModal").classList.add("hidden"));
 
   categoryFilter.addEventListener("change", renderProducts);
-  sizeFilter.addEventListener("change", renderProducts);
+  /* sizeFilter.addEventListener("change", renderProducts); */
 
   document.addEventListener("click", (e) => {
     if (e.target.matches(".add-to-cart")) {
@@ -58,6 +58,17 @@ function setupUI(){
       const pid = e.target.dataset.pid;
       openProductModal(pid);
     }
+  });
+
+  document.addEventListener("change", (e) => {
+  if (e.target.matches(".cart-size")) {
+    const pid = e.target.dataset.pid;
+    const item = CART.find(i => i.id === pid);
+    if (item) {
+      item.size = e.target.value;
+      saveCart();
+    }
+  }
   });
 
   $("#cartItems")?.addEventListener("click", (e) => {
@@ -166,9 +177,9 @@ function normalizeProduct(row){
 function populateFilters(){
   const cats = [...new Set(PRODUCTS.map(p => p.category || "Uncategorized"))].sort();
   categoryFilter.innerHTML = `<option value="all">All categories</option>` + cats.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
-  const sizes = new Set();
+  /*const sizes = new Set();
   PRODUCTS.forEach(p => (p.size||[]).forEach(s => sizes.add(s)));
-  sizeFilter.innerHTML = `<option value="all">All sizes</option>` + [...sizes].sort().map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
+  sizeFilter.innerHTML = `<option value="all">All sizes</option>` + [...sizes].sort().map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");*/
 }
 
 function renderProducts(){
@@ -176,7 +187,7 @@ function renderProducts(){
   const size = sizeFilter.value;
   const filtered = PRODUCTS.filter(p => {
     if(cat !== "all" && p.category !== cat) return false;
-    if(size !== "all" && (!p.size || !p.size.includes(size))) return false;
+    /*if(size !== "all" && (!p.size || !p.size.includes(size))) return false;*/
     return true;
   });
   if(filtered.length === 0) {
@@ -270,7 +281,15 @@ function addToCart(pid){
   if(!prod) return showToast("Product not found");
   const item = CART.find(i=>i.id===pid);
   if(item) item.qty++;
-  else CART.push({ id: pid, name: prod.name, price: prod.price, image_id: (prod.image_ids && prod.image_ids[0]) || "", qty: 1 });
+  else
+    CART.push({
+      id: pid,
+      name: prod.name,
+      price: prod.price,
+      image_id: (prod.image_ids && prod.image_ids[0]) || "",
+      qty: 1,
+      size: prod.size?.[0] || ""
+    });
   saveCart();
   showToast("Added to cart");
 }
@@ -288,6 +307,10 @@ function cartTotal(){ return CART.reduce((s,i)=> s + (i.price * i.qty), 0); }
 /* --------- Cart UI --------- */
 function openCart(){ renderCart(); $("#cartModal").classList.remove("hidden"); }
 function closeCart(){ $("#cartModal").classList.add("hidden"); }
+function getProductSizes(pid) {
+  const p = PRODUCTS.find(x => x.id === pid);
+  return p?.size || [];
+}
 function renderCart(){
   const wrap = $("#cartItems");
   if(!wrap) return;
@@ -300,7 +323,17 @@ function renderCart(){
           <strong>${escapeHtml(item.name)}</strong>
           <div>₹${(item.price||0).toFixed(2)}</div>
         </div>
-        <div style="margin-top:6px;display:flex;gap:8px;align-items:center">
+        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+  
+          <label style="font-size:0.85rem;">
+            Size:
+            <select class="cart-size" data-pid="${item.id}">
+              ${getProductSizes(item.id).map(s => `
+                <option value="${s}" ${item.size === s ? "selected" : ""}>${s}</option>
+              `).join("")}
+            </select>
+          </label>
+
           <button class="button qty-minus">-</button>
           <div>${item.qty}</div>
           <button class="button qty-plus">+</button>
@@ -322,7 +355,9 @@ function handleCheckout(formData){
   const address = formData.get("address");
   const notes = formData.get("notes") || "";
 
-  const itemsText = CART.map(i => `${i.name} x${i.qty} — ₹${(i.price*i.qty).toFixed(2)}`).join("\n");
+  const itemsText = CART.map(i =>
+  `${i.name} (${i.size || "No size"}) x${i.qty} — ₹${(i.price * i.qty).toFixed(2)}`
+  ).join("\n");
   const total = cartTotal().toFixed(2);
   const message = `New order from website\n\nCustomer: ${name}\nPhone: ${phone}\nAddress: ${address}\n\nItems:\n${itemsText}\n\nTotal: ₹${total}\n\nNotes: ${notes}`;
 
