@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Co-Ords</title>
+
     <link rel="stylesheet" href="css/bootstrap.min.css" />
     <link rel="stylesheet" href="css/style.css" />
     <link rel="preconnect" href="https://fonts.gstatic.com" />
@@ -15,266 +16,67 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
     />
+
+    <!-- PapaParse -->
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   </head>
+
   <body>
-    <!--Nav bar-->
-    <section class="head-section">
-      <header class="container">
-        <nav class="navbar navbar-expand-lg navbar-light penguin-nabbar">
-          <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-              <img
-                src="assets/images/logo.png"
-                alt=""
-                class="penguin-logo img-fluid"
-              />
-            </a>
-            <button
-              class="navbar-toggler"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#navbarNav"
-              aria-controls="navbarNav"
-              aria-expanded="false"
-              aria-label="Toggle navigation"
-            >
-              <span class="navbar-toggler-icon"></span>
-            </button>
-            <div
-              class="collapse navbar-collapse justify-content-end"
-              id="navbarNav"
-            >
-              <ul class="navbar-nav">
-                <li class="nav-item">
-                  <a class="nav-link active" aria-current="page" href="#"
-                    >Home</a
-                  >
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="#products">Products</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="#about-us">About us</a>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </nav>
-      </header>
-    </section>
+
+    <!-- FIXED NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-navbar">
+      <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="#">
+          <img src="assets/images/logo.png" class="penguin-logo img-fluid" style="height:50px;">
+          <span class="navbar-brand-text">Cathy's Dreamy Attire</span>
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+          <ul class="navbar-nav">
+            <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
+            <li class="nav-item"><a class="nav-link" href="#products">Products</a></li>
+            <li class="nav-item"><a class="nav-link" href="#about-us">About us</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
 
     <main>
-      <!--Banner section-->
-      <section class="head-section">
-        <div class="pt-2 pb-5 container">
-          <div class="row d-flex align-items-center">
-            <div class="col-md-6 px-3">
-              <h1 id="text-style">Elegant • Ethnic • Trendy </h1>
-              <h1 class="text-style2">Women’s Fashion</h1>
-              <p>
-                Discover a world of elegance and expression with our online boutique, 
-                offering custom designs, stylish co-ord sets, and beautifully tailored kurtis just for women. 
-                At Cathy's Dreamy Attire, every piece is crafted to reflect your unique charm and style.
-              </p>
-              </p>
-              ✨ <strong>Your dream outfit starts here</strong> ✨
-              </p>
-            </div>
-            <div class="col-md-6 how-img px-5">
-              <img src="assets/images/bannar-profile.png" class="img-fluid" alt="" />
-            </div>
-          </div>
+
+      <!-- HERO BANNER -->
+      <section class="hero-banner">
+        <div class="content">
+          <h1 class="hero-title">Elegant • Ethnic • Trendy</h1>
+          <h2 class="hero-subtitle">Women’s Fashion</h2>
         </div>
       </section>
 
-      <!--Co-Ords collection section-->
-      <section id="products" class="container mt-5">
-        <h1>Everyday Wear</h1>
-        <div class="row row-cols-1 row-cols-md-3 g-4 mt-3">
-          <div class="col">
-            <div class="card h-100 penguin-card-border shadow rounded">
-              <img
-                src="Images/woman/woman-jak1.png"
-                class="card-img-top penguin-card-img w-75"
-                alt="..."
-              />
-              <div class="card-body">
-                <h5 class="card-title">Yellow Coat Jacket</h5>
-                <p class="card-text">
-                  Stylish yellow coat for young and beautiful ladies.
-                </p>
-              </div>
-              <div
-                class="card-footer d-flex justify-content-between align-items-center penguin-card-footer"
-              >
-                <div>
-                  <h3 class="price-text-style">3200Rs</h3>
-                </div>
-                <div>
-                  <button type="button" class="btn penguin-btn">
-                    <i class="fa fa-shopping-cart"></i> ADD TO CART
-                  </button>
-                </div>
-                <div>
-                  <button type="button" class="btn penguin-btn">
-                    <i class="fa fa-shopping-cart"></i> BUY NOW
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col">
-            <div class="card h-100 penguin-card-border shadow rounded">
-              <img
-                src="Images/woman/woman-jak2.png"
-                class="card-img-top penguin-card-img w-75"
-                alt="..."
-              />
-              <div class="card-body">
-                <h5 class="card-title">Ladies Jacket</h5>
-                <p class="card-text">
-                  Jackets for casual wear in best prices and diffrent color
-                  patterns.
-                </p>
-              </div>
-              <div
-                class="card-footer d-flex justify-content-between align-items-center penguin-card-footer"
-              >
-                <div>
-                  <h3 class="price-text-style">2500Rs</h3>
-                </div>
-                <div>
-                  <button type="button" class="btn penguin-btn">
-                    <i class="fa fa-shopping-cart"></i> BUY NOW
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col">
-            <div class="card h-100 penguin-card-border shadow rounded">
-              <img
-                src="Images/woman/woman-jak3.png"
-                class="card-img-top penguin-card-img w-75"
-                alt="..."
-              />
-              <div class="card-body">
-                <h5 class="card-title">Woman Leather Jacket</h5>
-                <p class="card-text">
-                  Leather jackets of premium quality.
-                </p>
-              </div>
-              <div
-                class="card-footer d-flex justify-content-between align-items-center penguin-card-footer"
-              >
-                <div>
-                  <h3 class="price-text-style">5000Rs</h3>
-                </div>
-                <div>
-                  <button type="button" class="btn penguin-btn">
-                    <i class="fa fa-shopping-cart"></i> BUY NOW
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+      <!-- DESCRIPTION BOX -->
+      <div class="container">
+        <div class="intro-box">
+          <p>
+            Discover a world of elegance and effortless style.
+            From custom creations to elegant daily outfits crafted for comfort
+             and beautifully tailored ethnic wear, <strong>Cathy's Dreamy Attire</strong> brings you fashion that reflects your unique charm.
+          </p>
+          <p class="fw-bold text-center">✨ Your dream outfit starts here ✨</p>
         </div>
-      </section>
+      </div>
 
-      <!--Ethnic collection section-->
-      <section class="container mt-5">
-        <h1 class="penguin-catagory">Ethnic Wear</h1>
-        <div class="row row-cols-1 row-cols-md-3 g-4 mt-3">
-          <div class="col">
-            <div class="card h-100 penguin-card-border shadow rounded">
-              <img
-                src="Images/man/man-jak1.png"
-                class="card-img-top penguin-card-img w-75"
-                alt="..."
-              />
-              <div class="card-body">
-                <h5 class="card-title">Snowboard Jacket Mens</h5>
-                <p class="card-text">
-                  Snowboard jacket are ferfect match for people in moutain areas
-                  or for tourist.
-                </p>
-              </div>
-              <div
-                class="card-footer d-flex justify-content-between align-items-center penguin-card-footer"
-              >
-                <div>
-                  <h3 class="price-text-style">3500Rs</h3>
-                </div>
-                <div>
-                  <button type="button" class="btn penguin-btn">
-                    <i class="fa fa-shopping-cart"></i> BUY NOW
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col">
-            <div class="card h-100 penguin-card-border shadow rounded">
-              <img
-                src="Images/man/man-jak3.png"
-                class="card-img-top penguin-card-img w-75"
-                alt="..."
-              />
-              <div class="card-body">
-                <h5 class="card-title">Man Leather Jackets</h5>
-                <p class="card-text">
-                  Perfect bike riding jacket available with different color and
-                  sizes.
-                </p>
-              </div>
-              <div
-                class="card-footer d-flex justify-content-between align-items-center penguin-card-footer"
-              >
-                <div>
-                  <h3 class="price-text-style">4500Rs</h3>
-                </div>
-                <div>
-                  <button type="button" class="btn penguin-btn">
-                    <i class="fa fa-shopping-cart"></i> BUY NOW
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col">
-            <div class="card h-100 penguin-card-border shadow rounded">
-              <img
-                src="Images/man/man-jak2.png"
-                class="card-img-top penguin-card-img w-75"
-                alt="..."
-              />
-              <div class="card-body">
-                <h5 class="card-title">Man Casual Jackets</h5>
-                <p class="card-text">
-                  Matte Black Jacket with all sizes available.
-                </p>
-              </div>
-              <div
-                class="card-footer d-flex justify-content-between align-items-center penguin-card-footer"
-              >
-                <div>
-                  <h3 class="price-text-style">3000Rs</h3>
-                </div>
-                <div>
-                  <button type="button" class="btn penguin-btn">
-                    <i class="fa fa-shopping-cart"></i> BUY NOW
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!--Some information section-->
+      <!-- ⭐ RESTORED PRODUCTS SECTION (fix for navbar link) -->
+      <section id="products" class="container mt-5 pt-5"></section>
+      <!-- INFO CARDS (unchanged) -->
       <section class="container mt-5 pt-5">
         <div class="row">
-          <!-- Left column: Find the Perfect Fit -->
           <div class="col-md-6 px-3">
             <div class="card mb-3 penguin-card-border shadow">
               <div class="row g-0">
@@ -288,12 +90,10 @@
                       Everybody is different, which is why we offer styles for every body.
                     </p>
 
-                    <!-- Button to toggle size chart -->
                     <button class="btn btn-outline-primary" type="button" onclick="toggleSizeChart()">
                       View Size Chart
                     </button>
 
-                    <!-- Hidden image -->
                     <img id="sizeChartImage" src="assets/images/size-chart.png" alt="Size Chart"
                         style="display:none; margin-top:15px; max-width:100%;" />
                   </div>
@@ -302,7 +102,6 @@
             </div>
           </div>
 
-          <!-- Right column: Free Exchanges -->
           <div class="col-md-6 px-3">
             <div class="card mb-3 penguin-card-border shadow">
               <div class="row g-0">
@@ -321,74 +120,72 @@
               </div>
             </div>
           </div>
+
         </div>
       </section>
 
-      <!-- Toggle script -->
       <script>
         function toggleSizeChart() {
-          const img = document.getElementById('sizeChartImage');
-          img.style.display = (img.style.display === 'none' || img.style.display === '') ? 'block' : 'none';
+          const img = document.getElementById("sizeChartImage");
+          img.style.display = img.style.display === "none" ? "block" : "none";
         }
       </script>
 
-    <!--Footer section-->
-    <section class="footer-section">
-      <div class="container pb-5">
-        <div class="row">
-          <div id="about-us" class="col-sm pe-5 pt-3">
-            <img src="assets/images/logo.png" alt="" class="penguin-logo img-fluid" />
-            <hr />
-            <p>
-              At <strong>Cathy's Dreamy Attire</strong>, we believe every woman deserves to feel confident and beautiful in outfits made just for her. 
-              We specialize in custom designing, personalized outfit customization, and offer a handpicked collection through our exclusive online boutique.
-              From everyday elegance to special occasion glamour, our curated designs are crafted with care, quality fabrics, and your unique style in mind. 
-              Whether you're looking for a ready-to-wear ensemble or a custom-tailored dream outfit, we’re here to bring your fashion vision to life.
-            </p>
-          </div>
-          <div id="contact-us" class="col-sm pe-5 pt-3">
-            <h5>Contact us:</h5>
-            <hr />
-            <p>
-              <i class="fa fa-envelope-open"></i>
-              sales@cdastore.in
-            </p>
-            <p><i class="fa fa-phone"></i> +91 7907555924</p>
-          </div>
-          <div class="col-sm pe-5 pt-3">
-            <div>
+      <!-- FOOTER -->
+      <section class="footer-section">
+        <div class="container pb-5">
+          <div class="row">
+
+            <div id="about-us" class="col-sm pe-5 pt-3">
+              <img src="assets/images/logo.png" alt="" class="penguin-logo img-fluid" />
+              <hr />
+              <p>
+                At <strong>Cathy's Dreamy Attire</strong>, we believe every woman deserves to feel confident and beautiful in outfits made just for her.
+                We specialize in custom designing, personalized outfit customization, and offer a handpicked collection through our exclusive online boutique.
+              </p>
+            </div>
+
+            <div id="contact-us" class="col-sm pe-5 pt-3">
+              <h5>Contact us:</h5>
+              <hr />
+              <p><i class="fa fa-envelope-open"></i> sales@cdastore.in</p>
+              <p><i class="fa fa-phone"></i> +91 7907555924</p>
+            </div>
+
+            <div class="col-sm pe-5 pt-3">
               <h5>Get in Touch</h5>
               <hr />
-
-              <!-- Facebook -->
               <a href="https://www.facebook.com/CathysDreamyAttire/" target="_blank">
-                <i class="fa fa-facebook-square fa-2x pe-3" style="color:#1877F2;"></i>
+                <i class="fa fa-facebook-square fa-2x pe-3"></i>
               </a>
-
-              <!-- Instagram -->
               <a href="https://www.instagram.com/cathys_dreamy_attire/" target="_blank">
-                <i class="fa fa-instagram fa-2x pe-3" style="color:#E4405F;"></i>
+                <i class="fa fa-instagram fa-2x pe-3"></i>
               </a>
-
-              <!-- WhatsApp -->
-              <a href="https://wa.me/917907555924?text=Hello,%20Cathy's%20Dreamy%20Attire" target="_blank">
-                <i class="fa fa-whatsapp fa-2x pe-3" style="color:#25D366;"></i>
+              <a href="https://wa.me/917907555924?text=Hello%20Cathy%E2%80%99s%20Dreamy%20Attire" target="_blank">
+                <i class="fa fa-whatsapp fa-2x pe-3"></i>
               </a>
-
             </div>
+
           </div>
+
+          <footer>
+            <hr />
+            <p class="text-center">
+              © <span id="yearHome"></span> Cathy’s Dreamy Attire® • All Rights Reserved
+            </p>
+          </footer>
+
+          <script>
+            document.getElementById("yearHome").textContent = new Date().getFullYear();
+          </script>
+
         </div>
-      </div>
-      <footer>
-        <hr />
-        <p class="text-center">
-          © <span id="yearHome"></span> Cathy’s Dreamy Attire® • All Rights Reserved
-        </p>
-      </footer>
-      <script>
-      document.getElementById('yearHome').textContent = new Date().getFullYear();
-      </script>
-    </section>
+      </section>
+
+    </main>
+
     <script src="js/bootstrap.min.js"></script>
+    <script src="js/store.js"></script>
+
   </body>
 </html>
